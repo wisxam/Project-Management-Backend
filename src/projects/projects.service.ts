@@ -41,13 +41,13 @@ export class ProjectsService {
       project.id,
       code,
       userId,
+      project.name,
     );
 
     return project;
   }
 
   async getProjects(userId: number) {
-    this.getUserId(userId);
     return this.projectsRepository.getProjects(userId);
   }
 
@@ -111,5 +111,16 @@ export class ProjectsService {
         'You are not authorized to access this project',
       );
     }
+  }
+
+  async getAccessedProjects(userId: number) {
+    const accessedProject =
+      await this.projectsRepository.getUserAccessedProjects(userId);
+
+    if (!accessedProject) {
+      throw new Error(`No accessed projects found for user with ID: ${userId}`);
+    }
+
+    return accessedProject;
   }
 }

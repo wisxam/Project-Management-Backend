@@ -47,9 +47,10 @@ export class InvitationRequestService {
     return this.invitationRequestRepository.createInvitationRequest(
       userId,
       generatedCodeForProjectId?.projectId,
-      inviteCode,
+      generatedCodeForProjectId?.code,
       generatedCodeForProjectId?.ownerUserId,
       userInfo,
+      generatedCodeForProjectId?.projectName,
     );
   }
 

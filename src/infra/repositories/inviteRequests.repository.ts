@@ -13,6 +13,7 @@ export class InvitationRequestRepository {
     inviteCodeId: string,
     projectOwnerId: number,
     userInfo: UserInfoDto,
+    projectName: string,
   ) {
     return this.prismaService.invitationRequest.create({
       data: {
@@ -20,6 +21,7 @@ export class InvitationRequestRepository {
         projectId,
         inviteCodeId,
         projectOwnerId,
+        projectName,
         ...userInfo,
       },
     });

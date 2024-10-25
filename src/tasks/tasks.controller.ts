@@ -42,6 +42,7 @@ export class TasksController {
 
     return this.tasksService.createTask(projectId, taskDto, user);
   }
+
   @UseGuards(JwtAuthGuard)
   @Patch('update/:id')
   async updateTask(

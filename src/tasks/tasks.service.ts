@@ -14,25 +14,39 @@ export class TasksService {
     private readonly projectsRepository: ProjectsRepository,
   ) {}
 
-  private async validateProjectForUserId(projectId: number, userId: number) {
+  private async validateProjectAccess(projectId: number, userId: number) {
     const project =
       await this.projectsRepository.getProjectByProjectId(projectId);
 
+    // Check if the project exists
     if (!project) {
       throw new NotFoundException('The given project is not valid');
     }
 
-    if (project.userId !== userId) {
+    // Check if the user is the owner
+    if (project.userId === userId) {
+      return project; // User is the owner, access granted
+    }
+
+    // Check if the user has been granted access to this project
+    const isAllowed = await this.projectsRepository.getUserAccessProjectById(
+      projectId,
+      userId,
+    );
+    if (!isAllowed) {
       throw new UnauthorizedException(
         'You are not authorized to access this project',
       );
     }
 
-    return project;
+    return project; // User has access via the isAllowed check
   }
 
   async getTasksByProjectId(projectId: number, userId: number) {
-    await this.validateProjectForUserId(projectId, userId);
+    // Validate project access
+    await this.validateProjectAccess(projectId, userId);
+
+    // Proceed to fetch tasks for the project
     return this.tasksRepository.findTasksForProject(projectId);
   }
 
@@ -45,7 +59,7 @@ export class TasksService {
   }
 
   async createTask(projectId: number, taskDto: CreateTaskDto, userId: number) {
-    await this.validateProjectForUserId(projectId, userId);
+    await this.validateProjectAccess(projectId, userId);
     return this.tasksRepository.create(projectId, taskDto);
   }
 
@@ -55,7 +69,7 @@ export class TasksService {
     updateTaskDto: CreateTaskDto,
     userId: number,
   ) {
-    await this.validateProjectForUserId(projectId, userId);
+    await this.validateProjectAccess(projectId, userId);
 
     const task = await this.getTasksById(taskId);
 
@@ -73,7 +87,7 @@ export class TasksService {
     ids: string | string[],
     userId: number,
   ) {
-    await this.validateProjectForUserId(projectId, userId);
+    await this.validateProjectAccess(projectId, userId);
 
     const taskIds = Array.isArray(ids) ? ids : ids.split(',');
     const tasksToDelete = await this.tasksRepository.findManyById(taskIds);
@@ -113,7 +127,7 @@ export class TasksService {
     userId: number,
     projectId: number,
   ) {
-    await this.validateProjectForUserId(projectId, userId);
+    await this.validateProjectAccess(projectId, userId);
 
     const task = await this.getTasksById(taskId);
 

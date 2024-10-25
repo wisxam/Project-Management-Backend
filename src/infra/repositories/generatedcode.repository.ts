@@ -9,12 +9,14 @@ export class GeneratedInviteCodeRepository {
     projectId: number,
     code: string,
     projectOwner: number,
+    projectName: string,
   ) {
     return this.prismaService.inviteCode.create({
       data: {
         code,
         projectId,
         ownerUserId: projectOwner,
+        projectName,
         // expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
     });

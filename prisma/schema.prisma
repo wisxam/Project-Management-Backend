@@ -70,12 +70,14 @@ enum ProjectRole {
 }
 
 model InviteCode {
-  id                Int                 @id @default(autoincrement())
-  code              String              @unique // Store the generated invitation code
-  projectId         Int                 @unique // Link to the project
-  project           Project             @relation(fields: [projectId], references: [id])
-  expiresAt         DateTime? // Optional expiration time for the code
-  ownerUserId       Int
+  id          Int       @id @default(autoincrement())
+  code        String    @unique // Store the generated invitation code
+  projectId   Int       @unique // Link to the project
+  project     Project   @relation(fields: [projectId], references: [id])
+  expiresAt   DateTime? // Optional expiration time for the code
+  ownerUserId Int
+  projectName String    @default("nice")
+
   InvitationRequest InvitationRequest[]
 }
 
@@ -89,6 +91,7 @@ model InvitationRequest {
   projectOwnerId Int
   userName       String
   userEmail      String
+  projectName    String        @default("nice")
 
   user       User       @relation(fields: [userIdRequest], references: [userId])
   project    Project    @relation(fields: [projectId], references: [id])

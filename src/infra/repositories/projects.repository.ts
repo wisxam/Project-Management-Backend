@@ -56,6 +56,25 @@ export class ProjectsRepository {
       },
     });
   }
+
+  async getUserAccessedProjects(userIdRequest: number) {
+    return this.prismaService.invitationRequest.findMany({
+      where: {
+        userIdRequest,
+        status: 'accepted',
+      },
+    });
+  }
+
+  async getUserAccessProjectById(projectId: number, userIdRequest: number) {
+    return this.prismaService.invitationRequest.findFirst({
+      where: {
+        projectId,
+        userIdRequest,
+        status: 'accepted',
+      },
+    });
+  }
 }
 
 interface ProjectDto {

@@ -33,9 +33,9 @@ export class ProjectController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  getProjects(@Req() req: any) {
-    const user = req.user;
-    return this.projectService.getProjects(user.userId);
+  getCreatedProjects(@Req() req: any) {
+    const user = req.user.userId;
+    return this.projectService.getProjects(user);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -58,5 +58,12 @@ export class ProjectController {
     const userId = req.user.userId;
     await this.projectService.deleteProject(projectId, userId);
     return { message: 'Project deleted successfully' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/get/accessed-projects')
+  async getAccessedProjects(@Req() req: any) {
+    const userId = req.user.userId;
+    return this.projectService.getAccessedProjects(userId);
   }
 }
