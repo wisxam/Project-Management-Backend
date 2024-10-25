@@ -1,7 +1,7 @@
 import { Project } from '@prisma/client';
 
 export class ProjectsMapper {
-  static updateResponseMapper(project: Project) {
+  static projectCreationResponse(project: Project) {
     return {
       userId: project.userId,
       name: project.name,

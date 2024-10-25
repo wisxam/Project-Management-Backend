@@ -1,3 +1,6 @@
+-- CreateEnum
+CREATE TYPE "RequestStatus" AS ENUM ('pending', 'accepted', 'denied');
+
 -- CreateTable
 CREATE TABLE "User" (
     "userId" SERIAL NOT NULL,
@@ -33,6 +36,27 @@ CREATE TABLE "Project" (
 );
 
 -- CreateTable
+CREATE TABLE "InviteCode" (
+    "id" SERIAL NOT NULL,
+    "code" TEXT NOT NULL,
+    "projectId" INTEGER NOT NULL,
+    "expiresAt" TIMESTAMP(3),
+
+    CONSTRAINT "InviteCode_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "InvitationRequest" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "projectId" INTEGER NOT NULL,
+    "status" "RequestStatus" NOT NULL DEFAULT 'pending',
+    "requestedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "InvitationRequest_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "ProjectTeam" (
     "id" SERIAL NOT NULL,
     "teamId" INTEGER NOT NULL,
@@ -49,11 +73,11 @@ CREATE TABLE "Task" (
     "status" TEXT,
     "priority" TEXT,
     "tags" TEXT,
-    "startDate" TIMESTAMP(3),
-    "dueDate" TIMESTAMP(3),
+    "startDate" TIMESTAMP(3) NOT NULL,
+    "dueDate" TIMESTAMP(3) NOT NULL,
     "points" INTEGER,
     "projectId" INTEGER NOT NULL,
-    "authorUserId" INTEGER NOT NULL,
+    "authorUserId" INTEGER,
     "assignedUserId" INTEGER,
 
     CONSTRAINT "Task_pkey" PRIMARY KEY ("id")
@@ -95,11 +119,23 @@ CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "InviteCode_code_key" ON "InviteCode"("code");
+
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Project" ADD CONSTRAINT "Project_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("userId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "InviteCode" ADD CONSTRAINT "InviteCode_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "InvitationRequest" ADD CONSTRAINT "InvitationRequest_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("userId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "InvitationRequest" ADD CONSTRAINT "InvitationRequest_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ProjectTeam" ADD CONSTRAINT "ProjectTeam_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -111,7 +147,7 @@ ALTER TABLE "ProjectTeam" ADD CONSTRAINT "ProjectTeam_projectId_fkey" FOREIGN KE
 ALTER TABLE "Task" ADD CONSTRAINT "Task_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Task" ADD CONSTRAINT "Task_authorUserId_fkey" FOREIGN KEY ("authorUserId") REFERENCES "User"("userId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Task" ADD CONSTRAINT "Task_authorUserId_fkey" FOREIGN KEY ("authorUserId") REFERENCES "User"("userId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Task" ADD CONSTRAINT "Task_assignedUserId_fkey" FOREIGN KEY ("assignedUserId") REFERENCES "User"("userId") ON DELETE SET NULL ON UPDATE CASCADE;

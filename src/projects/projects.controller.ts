@@ -14,6 +14,7 @@ import { ProjectsService } from './projects.service';
 import { JwtAuthGuard } from 'src/guards';
 import { CreateProjectDto } from './dto/createProjectDto';
 import { UpdateProjectDto } from './dto/updateProjectDto';
+import { ProjectsMapper } from './projects.mapper';
 // import { ProjectsMapper } from './projects.mapper';
 
 @Controller('projects')
@@ -22,9 +23,12 @@ export class ProjectController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  createProject(@Body() body: CreateProjectDto, @Req() req: any) {
+  async createProject(@Body() body: CreateProjectDto, @Req() req: any) {
     const user = req.user;
-    return this.projectService.createProject(user.userId, body);
+
+    const project = await this.projectService.createProject(user.userId, body);
+
+    return ProjectsMapper.projectCreationResponse(project);
   }
 
   @UseGuards(JwtAuthGuard)

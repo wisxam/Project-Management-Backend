@@ -7,6 +7,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -48,10 +49,27 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Delete('/delete')
   async deleteUserById(@Req() req: any) {
-    const user = req.user;
+    const user = req.user.userId;
 
-    const deletedUser = await this.userService.deleteUserById(user.userId);
+    const deletedUser = await this.userService.deleteUserById(user);
 
     return UserMapper.toResponse(deletedUser);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/request-invite')
+  async requestInvite(@Query('id', ParseIntPipe) id: number, @Req() req: any) {
+    const user = req.user.userId;
+
+    return this.userService.acceptInvitation(id, user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/invites')
+  async getInvites(@Req() req: any) {
+    const user = req.user.userId;
+    const request = await this.userService.getInvitationRequestsByUserId(user);
+
+    return request.map((request) => UserMapper.requestMessage(request));
   }
 }

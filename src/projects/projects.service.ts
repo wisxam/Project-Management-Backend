@@ -6,18 +6,44 @@ import {
 import { ProjectsRepository } from 'src/infra/repositories/projects.repository';
 import { CreateProjectDto } from './dto/createProjectDto';
 import { UpdateProjectDto } from './dto/updateProjectDto';
+import { GeneratedInviteCodeRepository } from 'src/infra/repositories/generatedcode.repository';
+import { v4 as uuidv4 } from 'uuid';
+import { UserRepository } from 'src/infra/repositories/user.repository';
+import { UsersProjectDto } from 'src/user/dto/userproject.dto';
 
 @Injectable()
 export class ProjectsService {
-  constructor(private readonly projectsRepository: ProjectsRepository) {}
+  constructor(
+    private readonly projectsRepository: ProjectsRepository,
+    private readonly generatedCodeRepository: GeneratedInviteCodeRepository,
+    private readonly userRepository: UserRepository,
+  ) {}
 
   async getUserId(userId: number) {
     if (!userId) return new UnauthorizedException('User Id is not valid');
   }
 
   async createProject(userId: number, projectDto: CreateProjectDto) {
+    const code = uuidv4().slice(0, 6).toUpperCase();
+
     this.getUserId(userId);
-    return this.projectsRepository.createProject(userId, projectDto);
+
+    const project = await this.projectsRepository.createProject(
+      userId,
+      projectDto,
+    );
+
+    const user = await this.userRepository.getUserProfile(userId);
+
+    await this.userRepository.addProjectCreator(user as UsersProjectDto);
+
+    await this.generatedCodeRepository.generatedInviteCode(
+      project.id,
+      code,
+      userId,
+    );
+
+    return project;
   }
 
   async getProjects(userId: number) {
@@ -55,6 +81,14 @@ export class ProjectsService {
       projectId,
       userId,
     );
+
+    const projectCode = this.generatedCodeRepository.getInviteCode(projectId);
+
+    if (!projectCode) {
+      throw new NotFoundException('Project code not found');
+    }
+
+    await this.generatedCodeRepository.deleteInviteCode(projectId);
 
     if (projectForUser instanceof Error) {
       throw projectForUser;

@@ -10,12 +10,18 @@ import { ProjectsRepository } from '../infra/repositories/projects.repository';
 import { CreateUserDto } from './dto/create.user.dto';
 import { ICrypt } from '../lib';
 import { User } from '@prisma/client';
+import {
+  InvitationRequestRepository,
+  RequestStatus,
+} from 'src/infra/repositories/inviteRequests.repository';
+import { UsersProjectDto } from './dto/userproject.dto';
 
 @Injectable()
 export class UserService {
   constructor(
     private userRepository: UserRepository,
     private projectRepository: ProjectsRepository,
+    private invitationRequestRepository: InvitationRequestRepository,
     @Inject('ICrypt') private cryptService: ICrypt,
   ) {}
 
@@ -70,5 +76,38 @@ export class UserService {
     await this.projectRepository.deleteProjects(userId);
 
     return this.userRepository.deleteById(userId);
+  }
+
+  async acceptInvitation(requestId: number, userId: number) {
+    const request =
+      await this.invitationRequestRepository.getInvitationRequestById(
+        requestId,
+      );
+
+    if (!request) {
+      throw new NotFoundException('Request not found');
+    }
+
+    const user = await this.userRepository.findById(request.userIdRequest);
+
+    if (!user || userId) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.userRepository.addUserToProject(
+      request.projectId,
+      user as UsersProjectDto,
+    );
+
+    return this.invitationRequestRepository.updateInvitationRequestStatus(
+      requestId,
+      'accepted' as RequestStatus,
+    );
+  }
+
+  async getInvitationRequestsByUserId(userId: number) {
+    return this.invitationRequestRepository.getInvitationRequestsByUserId(
+      userId,
+    );
   }
 }

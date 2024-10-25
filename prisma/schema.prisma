@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "rhel-openssl-3.0.x"]
@@ -22,13 +16,15 @@ model User {
   teamId            Int?
   password          String
 
-  authoredTasks   Task[]           @relation("TaskAuthor")
-  assignedTasks   Task[]           @relation("TaskAssignee")
-  taskAssignments TaskAssignment[]
-  attachments     Attachment[]
-  comments        Comment[]
-  team            Team?            @relation(fields: [teamId], references: [id])
-  projects        Project[]
+  authoredTasks     Task[]              @relation("TaskAuthor")
+  assignedTasks     Task[]              @relation("TaskAssignee")
+  taskAssignments   TaskAssignment[]
+  attachments       Attachment[]
+  comments          Comment[]
+  team              Team?               @relation(fields: [teamId], references: [id])
+  projects          Project[]
+  InvitationRequest InvitationRequest[]
+  ProjectUser       ProjectUser[]
 }
 
 model Team {
@@ -41,16 +37,68 @@ model Team {
 }
 
 model Project {
-  id          Int       @id @default(autoincrement())
-  name        String
-  description String?
-  startDate   DateTime?
-  endDate     DateTime?
-  userId      Int
+  id                 Int                 @id @default(autoincrement())
+  name               String
+  description        String?
+  startDate          DateTime?
+  endDate            DateTime?
+  userId             Int
+  inviteCodes        InviteCode[]
+  invitationRequests InvitationRequest[]
+  users              ProjectUser[]
 
   tasks        Task[]
   projectTeams ProjectTeam[]
   user         User          @relation(fields: [userId], references: [userId])
+}
+
+model ProjectUser {
+  id        Int    @id @default(autoincrement())
+  username  String
+  email     String
+  projectId Int?
+  userId    Int
+  role      String
+
+  project Project? @relation(fields: [projectId], references: [id])
+  user    User     @relation(fields: [userId], references: [userId])
+}
+
+enum ProjectRole {
+  admin
+  user
+}
+
+model InviteCode {
+  id                Int                 @id @default(autoincrement())
+  code              String              @unique // Store the generated invitation code
+  projectId         Int                 @unique // Link to the project
+  project           Project             @relation(fields: [projectId], references: [id])
+  expiresAt         DateTime? // Optional expiration time for the code
+  ownerUserId       Int
+  InvitationRequest InvitationRequest[]
+}
+
+model InvitationRequest {
+  id             Int           @id @default(autoincrement())
+  userIdRequest  Int
+  projectId      Int
+  inviteCodeId   String
+  status         RequestStatus @default(pending)
+  requestedAt    DateTime      @default(now())
+  projectOwnerId Int
+  userName       String
+  userEmail      String
+
+  user       User       @relation(fields: [userIdRequest], references: [userId])
+  project    Project    @relation(fields: [projectId], references: [id])
+  inviteCode InviteCode @relation(fields: [inviteCodeId], references: [code])
+}
+
+enum RequestStatus {
+  pending
+  accepted
+  denied
 }
 
 model ProjectTeam {
@@ -65,7 +113,7 @@ model Task {
   id             Int      @id @default(autoincrement())
   title          String
   description    String?
-  status         String
+  status         String?
   priority       String?
   tags           String?
   startDate      DateTime

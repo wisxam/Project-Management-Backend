@@ -64,10 +64,59 @@ export class UserRepository {
       where: { userId },
     });
   }
+
+  async addUserToProject(projectId: number, userInfo: UsersProjects) {
+    return this.prismaService.projectUser.create({
+      data: {
+        username: userInfo.username,
+        email: userInfo.email,
+        userId: userInfo.userId,
+        projectId,
+        role: UserRoles.admin,
+      },
+    });
+  }
+
+  async addProjectCreator(userInfo: UsersProjects) {
+    return this.prismaService.projectUser.create({
+      data: {
+        username: userInfo.username,
+        email: userInfo.email,
+        userId: userInfo.userId,
+        role: UserRoles.admin,
+      },
+    });
+  }
+
+  async getUsersByProjectId(projectId: number) {
+    return this.prismaService.projectUser.findMany({
+      where: { projectId },
+      include: { user: true },
+    });
+  }
+
+  async getUserInfoByUserId(userId: number) {
+    return this.prismaService.user.findUnique({
+      where: {
+        userId,
+      },
+    });
+  }
 }
 
 interface CreateUserRequest {
   username: string;
   password: string;
   email: string;
+}
+
+interface UsersProjects {
+  username: string;
+  email: string;
+  userId: number;
+}
+
+enum UserRoles {
+  admin = 'ADMIN',
+  user = 'USER',
 }

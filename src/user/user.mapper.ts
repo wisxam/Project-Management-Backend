@@ -1,4 +1,4 @@
-import { User } from '@prisma/client';
+import { InvitationRequest, User } from '@prisma/client';
 
 export class UserMapper {
   static toResponse(user: User) {
@@ -8,6 +8,15 @@ export class UserMapper {
       email: user.email,
       profilePictureUrl: user.profilePictureUrl,
       teamId: user.teamId,
+    };
+  }
+
+  static requestMessage(request: InvitationRequest) {
+    return {
+      status: request.status,
+      userIdRequest: request.userIdRequest,
+      projectId: request.projectId,
+      inviteCodeId: request.inviteCodeId,
     };
   }
 
