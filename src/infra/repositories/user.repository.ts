@@ -102,6 +102,14 @@ export class UserRepository {
       },
     });
   }
+
+  async getTasksByUserId(userId: number) {
+    return this.prismaService.task.findMany({
+      where: {
+        OR: [{ assignedUserId: userId }, { authorUserId: userId }],
+      },
+    });
+  }
 }
 
 interface CreateUserRequest {

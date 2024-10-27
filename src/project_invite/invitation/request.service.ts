@@ -4,6 +4,7 @@ import { InvitationRequestRepository } from 'src/infra/repositories/inviteReques
 import { UpdateInvitationRequestDto } from './dto/updateInvitationRequestDto';
 import { UserRepository } from 'src/infra/repositories/user.repository';
 import { UserInfoDto } from './dto/userInfo';
+import { TasksRepository } from 'src/infra/repositories/tasks.repository';
 
 @Injectable()
 export class InvitationRequestService {
@@ -11,6 +12,7 @@ export class InvitationRequestService {
     private readonly generateInviteCodeService: GeneratedInviteCodeRepository,
     private readonly invitationRequestRepository: InvitationRequestRepository,
     private readonly userRepository: UserRepository,
+    private readonly tasksRepository: TasksRepository,
   ) {}
 
   async createInvitationRequest(userId: number, inviteCode: string) {
@@ -68,9 +70,16 @@ export class InvitationRequestService {
       await this.invitationRequestRepository.getInvitationRequestById(
         requestId,
       );
+
     if (!request) {
       throw new NotFoundException('Invitation request not found');
     }
+
+    await this.tasksRepository.updateTaskAssignedId(
+      request.projectId,
+      request.userIdRequest,
+    );
+
     return this.invitationRequestRepository.updateInvitationRequestStatus(
       requestId,
       status.status,

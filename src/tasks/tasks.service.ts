@@ -43,10 +43,8 @@ export class TasksService {
   }
 
   async getTasksByProjectId(projectId: number, userId: number) {
-    // Validate project access
     await this.validateProjectAccess(projectId, userId);
 
-    // Proceed to fetch tasks for the project
     return this.tasksRepository.findTasksForProject(projectId);
   }
 
@@ -60,7 +58,7 @@ export class TasksService {
 
   async createTask(projectId: number, taskDto: CreateTaskDto, userId: number) {
     await this.validateProjectAccess(projectId, userId);
-    return this.tasksRepository.create(projectId, taskDto);
+    return this.tasksRepository.create(projectId, taskDto, userId);
   }
 
   async updateTask(

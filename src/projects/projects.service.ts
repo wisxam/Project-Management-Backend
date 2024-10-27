@@ -51,10 +51,6 @@ export class ProjectsService {
     return this.projectsRepository.getProjects(userId);
   }
 
-  // async deleteProjects(userId: number) {
-  //   return this.projectsRepository.deleteProjects(userId);
-  // }
-
   async updateProject(
     projectId: number,
     projectDto: UpdateProjectDto,

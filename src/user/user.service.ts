@@ -110,4 +110,15 @@ export class UserService {
       userId,
     );
   }
+
+  async getTasksByUserId(userId: number) {
+    const accessedProject =
+      await this.projectRepository.getUserAccessedProjects(userId);
+
+    if (!accessedProject) {
+      throw new Error(`No accessed projects found for user with ID: ${userId}`);
+    }
+
+    return this.userRepository.getTasksByUserId(userId);
+  }
 }

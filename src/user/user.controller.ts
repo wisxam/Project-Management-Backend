@@ -72,4 +72,11 @@ export class UserController {
 
     return request.map((request) => UserMapper.requestMessage(request));
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/get/tasks')
+  async getTasks(@Req() req: any) {
+    const user = req.user.userId;
+    return this.userService.getTasksByUserId(user);
+  }
 }
